@@ -1,24 +1,49 @@
 #!/bin/bash
 
-FILE="$1"
-ARG="${2:-0}"
-EXTENSION="${FILE##*.}"
-NAME="${FILE%.*}"
-
+RED='\033[0;31m'
 GREEN='\033[0;32m'
 WHITE='\033[0;37m'
 NC='\033[0m' #Normal color
 
-if [ "$EXTENSION" == "java" ]; then
+FILE=""
+USEFILE=true
+KEEPTEST=false
+
+while getopts f:ik option
+do
+	case "$option" in
+		f)
+			FILE="$OPTARG" ;;
+		i)
+			USEFILE=false ;;
+		k)
+			KEEPTEST=true ;;
+		\? | h)
+			echo -e "\nUsage: ptest -f [FILENAME] [-i] [-k] [-h]"
+			echo -e "\t-i\tUse stdin instead of 'in.txt' as input"
+			echo -e "\t-k\tKeep the produced 'test.txt' file"
+			echo -e "\t-h\tShow usage\n"
+	esac
+done
+
+if [[ "$FILE" == "" ]]; then
+	echo -e "${RED}Error: no file specified"
+	exit
+fi
+
+EXTENSION="${FILE##*.}"
+NAME="${FILE%.*}"
+
+if [[ "$EXTENSION" == "java" ]]; then
 
 	echo -e "${GREEN}Compiling..."
 	javac "$FILE"
 
 	echo -e "${GREEN}Running...${WHITE}"
-	if [ "$ARG" == "-i" ]; then
-		java "$NAME" > test.txt
-	else
+	if [[ "$USEFILE" == true ]]; then
 		java "$NAME" < in.txt > test.txt
+	else
+		java "$NAME" > test.txt
 	fi
 
 	cat test.txt
@@ -26,7 +51,7 @@ if [ "$EXTENSION" == "java" ]; then
 	echo -e "${GREEN}Checking...${WHITE}"
 	DIFF=$(diff -u test.txt out.txt)
 
-	if [ "$DIFF" == "" ]; then
+	if [[ "$DIFF" == "" ]]; then
 		echo -e "${GREEN}Success!${WHITE}"
 	else
 		echo "$DIFF"
@@ -35,7 +60,7 @@ if [ "$EXTENSION" == "java" ]; then
 	echo -e "${GREEN}Removing class file...${NC}"
 	rm "${NAME}.class"
 
-	if [ "$2" == "-r" ] || [ "$3" == "-r" ]; then
+	if [[ "$KEEPTEST" == false ]]; then
 		echo -e "${GREEN}Removing test file...${NC}"
 		rm test.txt
 	fi
@@ -43,5 +68,5 @@ if [ "$EXTENSION" == "java" ]; then
 	echo -e "${GREEN}Done"
 
 else
-	echo "${NC}Filetype '$EXTENSION' is not supported"
+	echo -e "${NC}Filetype '$EXTENSION' is not supported"
 fi

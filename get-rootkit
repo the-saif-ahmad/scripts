@@ -1,2 +1,4 @@
 #!/bin/bash
 wget ftp://ftp.pangeia.com.br/pub/seg/pac/chkrootkit.tar.gz
+tar xzvf chkrootkit.tar.gz
+rm chkrootkit.tar.gz

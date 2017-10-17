@@ -1,24 +1,44 @@
 #!/bin/bash
 
-FILE="$1"
-ARG="${2:-0}"
-EXTENSION="${FILE##*.}"
-NAME="${FILE%.*}"
-
+RED='\033[0;31m'
 GREEN='\033[0;32m'
 WHITE='\033[0;37m'
 NC='\033[0m'
 
-if [ "$EXTENSION" == "java" ]; then
+FILE=""
+USEFILE=true
+
+while getopts f:i option
+do
+	case "$option" in
+		f)
+			FILE="$OPTARG" ;;
+		i)
+			USEFILE=false ;;
+		\? | h)
+			echo -e "\nUsage: run -f [FILENAME] [-i] [-h]"
+			echo -e "\t-i\tUse stdin instead of 'in.txt' as input"
+			echo -e "\t-h\tShow usage\n"
+	esac
+done
+
+if [[ "$FILE" == "" ]]; then
+	echo -e "${RED}Error: no file specified"
+fi
+
+EXTENSION="${FILE##*.}"
+NAME="${FILE%.*}"
+
+if [[ "$EXTENSION" == "java" ]]; then
 
 	echo -e "${GREEN}Compiling..."
 	javac "$FILE"
 
 	echo -e "${GREEN}Running...${WHITE}"
-	if [ "$ARG" == "-i" ]; then
-		java "$NAME"
-	else
+	if [[ "$USEFILE" == true ]]; then
 		java "$NAME" < in.txt
+	else
+		java "$NAME"
 	fi
 
 	echo -e "${GREEN}Removing class file..."
