@@ -1,0 +1,47 @@
+#!/bin/bash
+
+FILE="$1"
+ARG="${2:-0}"
+EXTENSION="${FILE##*.}"
+NAME="${FILE%.*}"
+
+GREEN='\033[0;32m'
+WHITE='\033[0;37m'
+NC='\033[0m' #Normal color
+
+if [ "$EXTENSION" == "java" ]; then
+
+	echo -e "${GREEN}Compiling..."
+	javac "$FILE"
+
+	echo -e "${GREEN}Running...${WHITE}"
+	if [ "$ARG" == "-i" ]; then
+		java "$NAME" > test.txt
+	else
+		java "$NAME" < in.txt > test.txt
+	fi
+
+	cat test.txt
+
+	echo -e "${GREEN}Checking...${WHITE}"
+	DIFF=$(diff -u test.txt out.txt)
+
+	if [ "$DIFF" == "" ]; then
+		echo -e "${GREEN}Success!${WHITE}"
+	else
+		echo "$DIFF"
+	fi
+
+	echo -e "${GREEN}Removing class file...${NC}"
+	rm "${NAME}.class"
+
+	if [ "$2" == "-r" ] || [ "$3" == "-r" ]; then
+		echo -e "${GREEN}Removing test file...${NC}"
+		rm test.txt
+	fi
+
+	echo -e "${GREEN}Done"
+
+else
+	echo "${NC}Filetype '$EXTENSION' is not supported"
+fi

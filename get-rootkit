@@ -1,0 +1,2 @@
+#!/bin/bash
+wget ftp://ftp.pangeia.com.br/pub/seg/pac/chkrootkit.tar.gz

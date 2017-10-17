@@ -1,0 +1,30 @@
+#!/bin/bash
+
+FILE="$1"
+ARG="${2:-0}"
+EXTENSION="${FILE##*.}"
+NAME="${FILE%.*}"
+
+GREEN='\033[0;32m'
+WHITE='\033[0;37m'
+NC='\033[0m'
+
+if [ "$EXTENSION" == "java" ]; then
+
+	echo -e "${GREEN}Compiling..."
+	javac "$FILE"
+
+	echo -e "${GREEN}Running...${WHITE}"
+	if [ "$ARG" == "-i" ]; then
+		java "$NAME"
+	else
+		java "$NAME" < in.txt
+	fi
+
+	echo -e "${GREEN}Removing class file..."
+	rm "${NAME}.class"
+	echo -e "${GREEN}Done"
+
+else
+	echo -e "${NC}Filetype '$EXTENSION' is not supported"
+fi
