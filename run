@@ -29,8 +29,8 @@ fi
 EXTENSION="${FILE##*.}"
 NAME="${FILE%.*}"
 
-if [[ "$EXTENSION" == "java" ]]; then
-
+RunJava()
+{
 	echo -e "${GREEN}Compiling..."
 	javac "$FILE"
 
@@ -44,7 +44,10 @@ if [[ "$EXTENSION" == "java" ]]; then
 	echo -e "${GREEN}Removing class file..."
 	rm "${NAME}.class"
 	echo -e "${GREEN}Done"
+}
 
+if [[ "$EXTENSION" == "java" ]]; then
+	RunJava
 else
 	echo -e "${NC}Filetype '$EXTENSION' is not supported"
 fi
