@@ -40,11 +40,20 @@ RunJava()
 	javac "$FILE"
 
 	echo -e "${GREEN}Running...${WHITE}"
+	START_TIME=0
+
 	if [[ "$USEFILE" == true ]]; then
+		START_TIME=`echo $(($(date +%s%N)/1000000))`
 		java "$NAME" < in.txt > test.txt
 	else
+		START_TIME=`echo $(($(date +%s%N)/1000000))`
 		java "$NAME" > test.txt
 	fi
+
+	END_TIME=`echo $(($(date +%s%N)/1000000))`
+	ELAPSED_TIME=$(($END_TIME - $START_TIME))
+
+	echo -e "${GREEN}Runtime: ${ELAPSED_TIME} ms${WHITE}"
 
 	cat test.txt
 

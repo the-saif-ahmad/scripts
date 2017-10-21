@@ -7,17 +7,21 @@ NC='\033[0m'
 
 FILE=""
 USEFILE=true
+SIMPLE=false
 
-while getopts f:i option
+while getopts f:is option
 do
 	case "$option" in
 		f)
 			FILE="$OPTARG" ;;
 		i)
 			USEFILE=false ;;
+		s)
+			SIMPLE=true ;;
 		\? | h)
-			echo -e "\nUsage: run -f [FILENAME] [-i] [-h]"
+			echo -e "\nUsage: run -f [FILENAME] [[-i] [-h]] [-s]"
 			echo -e "\t-i\tUse stdin instead of 'in.txt' as input"
+			echo -e "\t-s\tDo a simple compile and execute"
 			echo -e "\t-h\tShow usage\n"
 	esac
 done
@@ -31,15 +35,29 @@ NAME="${FILE%.*}"
 
 RunJava()
 {
-	echo -e "${GREEN}Compiling..."
+	echo -e "${GREEN}Compiling...${WHITE}"
 	javac "$FILE"
 
 	echo -e "${GREEN}Running...${WHITE}"
+
+	if [[ "$SIMPLE" == true ]]; then
+		java "$NAME"
+		exit
+	fi
+
+	START_TIME=0
 	if [[ "$USEFILE" == true ]]; then
+		START_TIME=`echo $(($(date +%s%N)/1000000))`
 		java "$NAME" < in.txt
 	else
+		START_TIME=`echo $(($(date +%s%N)/1000000))`
 		java "$NAME"
 	fi
+	END_TIME=`echo $(($(date +%s%N)/1000000))`
+
+	ELAPSED_TIME=$(($END_TIME - $START_TIME))
+
+	echo -e "${GREEN}Runtime: ${ELAPSED_TIME} ms"
 
 	echo -e "${GREEN}Removing class file..."
 	rm "${NAME}.class"
