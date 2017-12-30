@@ -19,7 +19,7 @@ do
 		s)
 			SIMPLE=true ;;
 		\? | h)
-			echo -e "\nUsage: run -f [FILENAME] [[-i] [-h]] [-s]"
+			echo -e "\nUsage: run -f [FILENAME] [options]"
 			echo -e "\t-i\tUse stdin instead of 'in.txt' as input"
 			echo -e "\t-s\tDo a simple compile and execute"
 			echo -e "\t-h\tShow usage\n"

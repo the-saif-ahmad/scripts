@@ -19,7 +19,7 @@ do
 		k)
 			KEEPTEST=true ;;
 		\? | h)
-			echo -e "\nUsage: ptest -f [FILENAME] [-i] [-k] [-h]"
+			echo -e "\nUsage: ptest -f [FILENAME] [options]"
 			echo -e "\t-i\tUse stdin instead of 'in.txt' as input"
 			echo -e "\t-k\tKeep the produced 'test.txt' file"
 			echo -e "\t-h\tShow usage\n"
