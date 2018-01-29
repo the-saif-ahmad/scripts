@@ -47,13 +47,13 @@ RunJava()
 
 	START_TIME=0
 	if [[ "$USEFILE" == true ]]; then
-		START_TIME=$(($(gdate +%s%N)/1000000))
+		START_TIME=$(($(date +%s%N)/1000000))
 		java "$NAME" < in.txt
 	else
-		START_TIME=$(($(gdate +%s%N)/1000000))
+		START_TIME=$(($(date +%s%N)/1000000))
 		java "$NAME"
 	fi
-	END_TIME=$(($(gdate +%s%N)/1000000))
+	END_TIME=$(($(date +%s%N)/1000000))
 
 	ELAPSED_TIME=$(($END_TIME - $START_TIME))
 
