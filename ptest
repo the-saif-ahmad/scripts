@@ -67,7 +67,7 @@ RunJava()
 	fi
 
 	echo -e "${GREEN}Removing class file...${NC}"
-	rm "${NAME}.class"
+	rm *.class
 
 	if [[ "$KEEPTEST" == false ]]; then
 		echo -e "${GREEN}Removing test file...${NC}"
