@@ -8,6 +8,7 @@ FILE=""
 USEFILE=true
 IN_FILE="in.txt"
 SIMPLE=false
+JUST_RUN=false
 
 # Detect the platform (similar to $OSTYPE)
 DATE_COMMAND="date"
@@ -16,15 +17,17 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 	DATE_COMMAND="gdate"
 fi
 
-while getopts f:i:shu option
+while getopts f:i:shur option
 do
 	case "$option" in
 		f)
 			FILE="$OPTARG" ;;
 		i)
-			IN_FILE="$OPTARG";;
+			IN_FILE="$OPTARG" ;;
 		u)
 			USEFILE=false ;;
+		r)
+			JUST_RUN=true ;;
 		s)
 			SIMPLE=true ;;
 		\? | h)
@@ -32,6 +35,7 @@ do
 			echo -e "\\t-i\\tSpecify the input file to use"
 			echo -e "\\t-u\\tUse stdin instead of '$IN_FILE' as input"
 			echo -e "\\t-s\\tDo a simple compile and execute"
+			echo -e "\\t-r\\tSkip compilation and just run the class"
 			echo -e "\\t-h\\tShow usage\\n"
 	esac
 done
@@ -49,8 +53,10 @@ NAME="${FILE%.*}"
 
 RunJava()
 {
-	echo -e "${GREEN}Compiling...${WHITE}"
-	javac "$FILE"
+	if [[ "$JUST_RUN" != true ]]; then
+		echo -e "${GREEN}Compiling...${WHITE}"
+		javac "$FILE"
+	fi
 
 	echo -e "${GREEN}Running...${WHITE}"
 
@@ -72,7 +78,6 @@ RunJava()
 	echo -e "${GREEN}Runtime: ${ELAPSED_TIME} ms"
 	echo -e "${GREEN}Removing class file..."
 	rm *.class
-	echo -e "${GREEN}Done"
 }
 
 if [[ "$EXTENSION" == "java" ]]; then
