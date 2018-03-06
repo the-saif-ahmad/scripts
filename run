@@ -10,13 +10,13 @@ IN_FILE="in.txt"
 SIMPLE=false
 
 # Detect the platform (similar to $OSTYPE)
-DATE_MOD="+%s%N"
+DATE_COMMAND="date"
   
 if [[ "$OSTYPE" == "darwin"* ]]; then
-	DATE_MOD="+%s000"
+	DATE_COMMAND="gdate"
 fi
 
-while getopts f:i:sh option
+while getopts f:i:shu option
 do
 	case "$option" in
 		f)
@@ -61,16 +61,15 @@ RunJava()
 
 	START_TIME=0
 	if [[ "$USEFILE" == true ]]; then
-		START_TIME=$(($(date $DATE_MOD)/1000000))
+		START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
 		java "$NAME" < "$IN_FILE"
 	else
-		START_TIME=$(($(date $DATE_MOD)/1000000))
-		java "$NAME" < "$IN_FILE"
+		START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
+		java "$NAME"
 	fi
-	END_TIME=$(($(date $DATE_MOD)/1000000))
+	END_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
 	ELAPSED_TIME=$(($END_TIME - $START_TIME))
 	echo -e "${GREEN}Runtime: ${ELAPSED_TIME} ms"
-
 	echo -e "${GREEN}Removing class file..."
 	rm *.class
 	echo -e "${GREEN}Done"
