@@ -64,8 +64,67 @@ RunJava()
 	echo -e "${GREEN}Done"
 }
 
+RunPython()
+{
+	if [[ "$SIMPLE" == true ]]; then
+		python "$FILE"
+		exit
+	fi
+
+	START_TIME=0
+	if [[ "$USEFILE" == true ]]; then
+		START_TIME=$(($(date +%s%N)/1000000))
+		python "$FILE" < in.txt
+	else
+		START_TIME=$(($(date +%s%N)/1000000))
+		python "$FILE"
+	fi
+	END_TIME=$(($(date +%s%N)/1000000))
+
+	ELAPSED_TIME=$(($END_TIME - $START_TIME))
+
+	echo -e "${GREEN}Runtime: ${ELAPSED_TIME} ms"
+
+	echo -e "${GREEN}Done"
+}
+
+RunCpp()
+{
+	echo -e "${GREEN}Compiling...${WHITE}"
+	g++ -std=c++11 "$FILE" -Wall
+
+	echo -e "${GREEN}Running...${WHITE}"
+
+	if [[ "$SIMPLE" == true ]]; then
+		./a.out
+		exit
+	fi
+
+	START_TIME=0
+	if [[ "$USEFILE" == true ]]; then
+		START_TIME=$(($(date +%s%N)/1000000))
+		./a.out < in.txt
+	else
+		START_TIME=$(($(date +%s%N)/1000000))
+		./a.out
+	fi
+	END_TIME=$(($(date +%s%N)/1000000))
+
+	ELAPSED_TIME=$(($END_TIME - $START_TIME))
+
+	echo -e "${GREEN}Runtime: ${ELAPSED_TIME} ms"
+
+	echo -e "${GREEN}Removing executable file..."
+	rm a.out
+	echo -e "${GREEN}Done"
+}
+
 if [[ "$EXTENSION" == "java" ]]; then
 	RunJava
+elif [[ "$EXTENSION" == "py" ]]; then
+	RunPython
+elif [[ "$EXTENSION" == "cpp" ]]; then
+	RunCpp
 else
 	echo -e "${NC}Filetype '$EXTENSION' is not supported"
 fi
