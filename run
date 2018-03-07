@@ -1,5 +1,4 @@
 #!/bin/bash
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 WHITE='\033[0;37m'
@@ -7,27 +6,50 @@ NC='\033[0m'
 
 FILE=""
 USEFILE=true
+IN_FILE="in.txt"
+OUT_FILE=""
 SIMPLE=false
+JUST_RUN=false
 
-while getopts f:ish option
+# Detect the platform (similar to $OSTYPE)
+DATE_COMMAND="date"
+  
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	DATE_COMMAND="gdate"
+fi
+
+while getopts f:i:o:shur option
 do
 	case "$option" in
 		f)
 			FILE="$OPTARG" ;;
 		i)
+			IN_FILE="$OPTARG" ;;
+		o)
+			OUT_FILE="$OPTARG" ;;
+		u)
 			USEFILE=false ;;
+		r)
+			JUST_RUN=true ;;
 		s)
 			SIMPLE=true ;;
 		\? | h)
 			echo -e "\\nUsage: run -f [FILENAME] [options]"
-			echo -e "\\t-i\\tUse stdin instead of 'in.txt' as input"
+			echo -e "\\t-i\\tSpecify the input file to use"
+			echo -e "\\t-o\\tSpecify an expected output file to diff stdout with"
+			echo -e "\\t-u\\tUse stdin instead of '$IN_FILE' as input"
 			echo -e "\\t-s\\tDo a simple compile and execute"
+			echo -e "\\t-r\\tSkip compilation and just run the class"
 			echo -e "\\t-h\\tShow usage\\n"
 	esac
 done
 
 if [[ "$FILE" == "" ]]; then
-	echo -e "${RED}Error: no file specified"
+	echo -e "${RED}Error: no source file specified"
+fi
+
+if [[ "$FILE" == "" ]]; then
+	echo -e "${RED}Error: no input file specified"
 fi
 
 EXTENSION="${FILE##*.}"
@@ -35,8 +57,10 @@ NAME="${FILE%.*}"
 
 RunJava()
 {
-	echo -e "${GREEN}Compiling...${WHITE}"
-	javac "$FILE"
+	if [[ "$JUST_RUN" != true ]]; then
+		echo -e "${GREEN}Compiling...${WHITE}"
+		javac "$FILE"
+	fi
 
 	echo -e "${GREEN}Running...${WHITE}"
 
@@ -46,22 +70,24 @@ RunJava()
 	fi
 
 	START_TIME=0
+	OUTPUT=""
 	if [[ "$USEFILE" == true ]]; then
-		START_TIME=$(($(date +%s%N)/1000000))
-		java "$NAME" < in.txt
+		START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
+		OUTPUT=$(java "$NAME" < "$IN_FILE")
 	else
-		START_TIME=$(($(date +%s%N)/1000000))
-		java "$NAME"
+		START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
+		OUTPUT=$(java "$NAME")
 	fi
-	END_TIME=$(($(date +%s%N)/1000000))
-
+	echo -e "$OUTPUT"
+	END_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
 	ELAPSED_TIME=$(($END_TIME - $START_TIME))
-
 	echo -e "${GREEN}Runtime: ${ELAPSED_TIME} ms"
-
+	if [[ "$OUT_FILE" != "" ]]; then
+		echo -e "${GREEN}Checking difference with output file${WHITE}"
+		echo "$OUTPUT" | diff - "$OUT_FILE"
+	fi
 	echo -e "${GREEN}Removing class file..."
 	rm *.class
-	echo -e "${GREEN}Done"
 }
 
 RunPython()
