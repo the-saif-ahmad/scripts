@@ -10,6 +10,9 @@ IN_FILE="in.txt"
 OUT_FILE=""
 SIMPLE=false
 JUST_RUN=false
+ELAPSED_TIME=0
+
+RUNS=1
 
 # Detect the platform (similar to $OSTYPE)
 DATE_COMMAND="date"
@@ -18,7 +21,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 	DATE_COMMAND="gdate"
 fi
 
-while getopts f:i:o:shur option
+while getopts f:i:o:b:shur option
 do
 	case "$option" in
 		f)
@@ -33,6 +36,8 @@ do
 			JUST_RUN=true ;;
 		s)
 			SIMPLE=true ;;
+		b)
+			RUNS="$OPTARG" ;;
 		\? | h)
 			echo -e "\\nUsage: run -f [FILENAME] [options]"
 			echo -e "\\t-i\\tSpecify the input file to use"
@@ -40,6 +45,7 @@ do
 			echo -e "\\t-u\\tUse stdin instead of '$IN_FILE' as input"
 			echo -e "\\t-s\\tDo a simple compile and execute"
 			echo -e "\\t-r\\tSkip compilation and just run the class"
+			echo -e "\\t-b\\tSpecify the amount of times to run the program, and output the average runtime"
 			echo -e "\\t-h\\tShow usage\\n"
 	esac
 done
@@ -55,13 +61,16 @@ fi
 EXTENSION="${FILE##*.}"
 NAME="${FILE%.*}"
 
-RunJava()
+CompileJava()
 {
 	if [[ "$JUST_RUN" != true ]]; then
 		echo -e "${GREEN}Compiling...${WHITE}"
 		javac "$FILE"
 	fi
+}
 
+RunJava()
+{
 	echo -e "${GREEN}Running...${WHITE}"
 
 	if [[ "$SIMPLE" == true ]]; then
@@ -80,14 +89,14 @@ RunJava()
 	fi
 	echo -e "$OUTPUT"
 	END_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
-	ELAPSED_TIME=$(($END_TIME - $START_TIME))
-	echo -e "${GREEN}Runtime: ${ELAPSED_TIME} ms"
+	ELAPSED_TIME=$((END_TIME - START_TIME))
+
 	if [[ "$OUT_FILE" != "" ]]; then
 		echo -e "${GREEN}Checking difference with output file${WHITE}"
 		echo "$OUTPUT" | diff - "$OUT_FILE"
 	fi
-	echo -e "${GREEN}Removing class file..."
-	rm *.class
+
+	echo -e "${GREEN}Done"
 }
 
 RunPython()
@@ -107,18 +116,19 @@ RunPython()
 	fi
 	END_TIME=$(($(date +%s%N)/1000000))
 
-	ELAPSED_TIME=$(($END_TIME - $START_TIME))
-
-	echo -e "${GREEN}Runtime: ${ELAPSED_TIME} ms"
+	ELAPSED_TIME=$((END_TIME - START_TIME))
 
 	echo -e "${GREEN}Done"
 }
 
-RunCpp()
+CompileCpp()
 {
 	echo -e "${GREEN}Compiling...${WHITE}"
 	g++ -std=c++11 "$FILE" -Wall
+}
 
+RunCpp()
+{
 	echo -e "${GREEN}Running...${WHITE}"
 
 	if [[ "$SIMPLE" == true ]]; then
@@ -136,21 +146,51 @@ RunCpp()
 	fi
 	END_TIME=$(($(date +%s%N)/1000000))
 
-	ELAPSED_TIME=$(($END_TIME - $START_TIME))
+	ELAPSED_TIME=$((END_TIME - START_TIME))
 
-	echo -e "${GREEN}Runtime: ${ELAPSED_TIME} ms"
-
-	echo -e "${GREEN}Removing executable file..."
-	rm a.out
 	echo -e "${GREEN}Done"
 }
 
 if [[ "$EXTENSION" == "java" ]]; then
-	RunJava
-elif [[ "$EXTENSION" == "py" ]]; then
-	RunPython
+	CompileJava
 elif [[ "$EXTENSION" == "cpp" ]]; then
-	RunCpp
+	CompileCpp
 else
 	echo -e "${NC}Filetype '$EXTENSION' is not supported"
+	exit 1
 fi
+
+SUM=0
+TOTAL=0
+
+while [[ "$RUNS" -gt 0 ]]
+do
+	if [[ "$EXTENSION" == "java" ]]; then
+		RunJava
+	elif [[ "$EXTENSION" == "py" ]]; then
+		RunPython
+	elif [[ "$EXTENSION" == "cpp" ]]; then
+		RunCpp
+	fi
+
+	SUM=$((SUM + ELAPSED_TIME))
+	TOTAL=$((TOTAL + 1))
+	RUNS=$((RUNS - 1))
+done
+
+AVERAGE_TIME=$((SUM / TOTAL))
+
+echo -e "${GREEN}Average runtime: ${AVERAGE_TIME} ms"
+
+if [[ "$EXTENSION" == "java" ]]; then
+	echo -e "${GREEN}Removing class file..."
+	rm *.class
+elif [[ "$EXTENSION" == "cpp" ]]; then
+	echo -e "${GREEN}Removing executable file..."
+	rm a.out
+else
+	echo -e "${NC}Filetype '$EXTENSION' is not supported"
+	exit 1
+fi
+
+echo -e "${GREEN}Done"
