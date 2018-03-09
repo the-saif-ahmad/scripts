@@ -52,10 +52,12 @@ done
 
 if [[ "$FILE" == "" ]]; then
 	echo -e "${RED}Error: no source file specified"
+	exit 1
 fi
 
 if [[ "$USEFILE" && "$IN_FILE" == "" ]]; then
 	echo -e "${RED}Error: no input file specified"
+	exit 1
 fi
 
 EXTENSION="${FILE##*.}"
