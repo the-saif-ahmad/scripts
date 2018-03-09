@@ -118,7 +118,7 @@ RunPython()
 
 	ELAPSED_TIME=$((END_TIME - START_TIME))
 
-	echo -e "${GREEN}Done"
+	echo -e "${GREEN}Done${NC}"
 }
 
 CompileCpp()
@@ -155,6 +155,8 @@ if [[ "$EXTENSION" == "java" ]]; then
 	CompileJava
 elif [[ "$EXTENSION" == "cpp" ]]; then
 	CompileCpp
+elif [[ "$EXTENSION" == "py" ]]; then
+	echo -e "${GREEN}Python cannot be compiled, proceeding to run...${NC}"
 else
 	echo -e "${NC}Filetype '$EXTENSION' is not supported"
 	exit 1
@@ -162,6 +164,7 @@ fi
 
 SUM=0
 TOTAL=0
+TIMES_RAN="$RUNS"
 
 while [[ "$RUNS" -gt 0 ]]
 do
@@ -180,7 +183,7 @@ done
 
 AVERAGE_TIME=$((SUM / TOTAL))
 
-echo -e "${GREEN}Average runtime: ${AVERAGE_TIME} ms"
+echo -e "${GREEN}Average runtime after ${TIMES_RAN} runs: ${AVERAGE_TIME} ms"
 
 if [[ "$EXTENSION" == "java" ]]; then
 	echo -e "${GREEN}Removing class file..."
@@ -189,8 +192,7 @@ elif [[ "$EXTENSION" == "cpp" ]]; then
 	echo -e "${GREEN}Removing executable file..."
 	rm a.out
 else
-	echo -e "${NC}Filetype '$EXTENSION' is not supported"
-	exit 1
+	echo -e "${GREEN}No executable to remove for Python, exiting..."
 fi
 
 echo -e "${GREEN}Done"
