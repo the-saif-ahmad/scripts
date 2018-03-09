@@ -54,7 +54,7 @@ if [[ "$FILE" == "" ]]; then
 	echo -e "${RED}Error: no source file specified"
 fi
 
-if [[ "$FILE" == "" ]]; then
+if [[ "$USEFILE" && "$IN_FILE" == "" ]]; then
 	echo -e "${RED}Error: no input file specified"
 fi
 
