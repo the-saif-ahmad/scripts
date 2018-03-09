@@ -4,7 +4,8 @@ GREEN='\033[0;32m'
 WHITE='\033[0;37m'
 NC='\033[0m'
 
-FILE=""
+FILE="$1"
+shift
 USEFILE=true
 IN_FILE="in.txt"
 OUT_FILE=""
@@ -21,11 +22,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 	DATE_COMMAND="gdate"
 fi
 
-while getopts f:i:o:b:shur option
+while getopts :i:o:b:shur option
 do
 	case "$option" in
-		f)
-			FILE="$OPTARG" ;;
 		i)
 			IN_FILE="$OPTARG" ;;
 		o)
@@ -38,7 +37,7 @@ do
 			SIMPLE=true ;;
 		b)
 			RUNS="$OPTARG" ;;
-		\? | h)
+		\? | h | :) 
 			echo -e "\\nUsage: run -f [FILENAME] [options]"
 			echo -e "\\t-i\\tSpecify the input file to use"
 			echo -e "\\t-o\\tSpecify an expected output file to diff stdout with"
