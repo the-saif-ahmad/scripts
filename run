@@ -110,7 +110,7 @@ RunPython()
 	START_TIME=0
 	if [[ "$USEFILE" == true ]]; then
 		START_TIME=$(($(date +%s%N)/1000000))
-		python "$FILE" < in.txt
+		python "$FILE" < "$IN_FILE"
 	else
 		START_TIME=$(($(date +%s%N)/1000000))
 		python "$FILE"
@@ -140,7 +140,7 @@ RunCpp()
 	START_TIME=0
 	if [[ "$USEFILE" == true ]]; then
 		START_TIME=$(($(date +%s%N)/1000000))
-		./a.out < in.txt
+		./a.out < "$IN_FILE"
 	else
 		START_TIME=$(($(date +%s%N)/1000000))
 		./a.out
