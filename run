@@ -12,51 +12,69 @@ OUT_FILE=""
 SIMPLE=false
 JUST_RUN=false
 ELAPSED_TIME=0
+SAVEFILE=""
+DIFF_COMMAND="diff"
 
 RUNS=1
 
 # Detect the platform (similar to $OSTYPE)
 DATE_COMMAND="date"
-  
+
 if [[ "$OSTYPE" == "darwin"* ]]; then
-	DATE_COMMAND="gdate"
+  DATE_COMMAND="gdate"
 fi
 
-while getopts :i:o:b:shur option
+PrintHelp()
+{
+    echo -e "\\nUsage: run {FILENAME} [options]"
+    echo -e "\\t-i\\tSpecify the input file to use"
+    echo -e "\\t-o\\tSpecify an expected output file to diff stdout with"
+    echo -e "\\t-u\\tUse stdin instead of '$IN_FILE' as input"
+    echo -e "\\t-s\\tDo a simple compile and execute"
+    echo -e "\\t-r\\tSkip compilation and just run the class"
+    echo -e "\\t-b\\tSpecify the amount of times to run the program, and output the average runtime"
+    echo -e "\\t-e\\tSpecify a file to pipe output to"
+    echo -e "\\t-c\\tUse color for diff (must have colordiff installed)"
+    echo -e "\\t-h\\tShow usage\\n"
+}
+
+if [[ "$1" == "" || "$1" == "-h" ]]; then
+  PrintHelp
+  exit 1
+fi
+
+while getopts :i:o:b:e:shurc option
 do
-	case "$option" in
-		i)
-			IN_FILE="$OPTARG" ;;
-		o)
-			OUT_FILE="$OPTARG" ;;
-		u)
-			USEFILE=false ;;
-		r)
-			JUST_RUN=true ;;
-		s)
-			SIMPLE=true ;;
-		b)
-			RUNS="$OPTARG" ;;
-		\? | h | :) 
-			echo -e "\\nUsage: run -f [FILENAME] [options]"
-			echo -e "\\t-i\\tSpecify the input file to use"
-			echo -e "\\t-o\\tSpecify an expected output file to diff stdout with"
-			echo -e "\\t-u\\tUse stdin instead of '$IN_FILE' as input"
-			echo -e "\\t-s\\tDo a simple compile and execute"
-			echo -e "\\t-r\\tSkip compilation and just run the class"
-			echo -e "\\t-b\\tSpecify the amount of times to run the program, and output the average runtime"
-			echo -e "\\t-h\\tShow usage\\n"
-	esac
+  case "$option" in
+    i)
+      IN_FILE="$OPTARG" ;;
+    o)
+      OUT_FILE="$OPTARG" ;;
+    u)
+      USEFILE=false ;;
+    r)
+      JUST_RUN=true ;;
+    c)
+      DIFF_COMMAND="colordiff" ;;
+    s)
+      SIMPLE=true ;;
+    b)
+      RUNS="$OPTARG" ;;
+    e)
+      SAVEFILE="$OPTARG" ;;
+    \? | h | :) 
+      PrintHelp
+  esac
 done
 
 if [[ "$FILE" == "" ]]; then
-	echo -e "${RED}Error: no source file specified"
-	exit 1
+  echo -e "${RED}Error: no source file specified"
+  exit 1
 fi
 
 if [[ "$USEFILE" && "$IN_FILE" == "" ]]; then
-	echo -e "${RED}Error: no input file specified"
-	exit 1
+  echo -e "${RED}Error: no input file specified"
+  exit 1
 fi
 
 EXTENSION="${FILE##*.}"
@@ -64,103 +82,107 @@ NAME="${FILE%.*}"
 
 CompileJava()
 {
-	if [[ "$JUST_RUN" != true ]]; then
-		echo -e "${GREEN}Compiling...${WHITE}"
-		javac "$FILE"
-	fi
+  if [[ "$JUST_RUN" != true ]]; then
+    echo -e "${GREEN}Compiling...${WHITE}"
+    javac "$FILE"
+  fi
 }
 
 RunJava()
 {
-	echo -e "${GREEN}Running...${WHITE}"
+  echo -e "${GREEN}Running...${WHITE}"
 
-	if [[ "$SIMPLE" == true ]]; then
-		java "$NAME"
-		exit
-	fi
+  if [[ "$SIMPLE" == true ]]; then
+    java "$NAME"
+    exit
+  fi
 
-	START_TIME=0
-	OUTPUT=""
-	if [[ "$USEFILE" == true ]]; then
-		START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
-		OUTPUT=$(java "$NAME" < "$IN_FILE")
-	else
-		START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
-		OUTPUT=$(java "$NAME")
-	fi
-	echo -e "$OUTPUT"
-	END_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
-	ELAPSED_TIME=$((END_TIME - START_TIME))
+  START_TIME=0
+  OUTPUT=""
+  if [[ "$USEFILE" == true ]]; then
+    START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
+    OUTPUT=$(java "$NAME" < "$IN_FILE")
+  else
+    START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
+    OUTPUT=$(java "$NAME")
+  fi
+  echo -e "$OUTPUT"
+  END_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
+  ELAPSED_TIME=$((END_TIME - START_TIME))
 
-	if [[ "$OUT_FILE" != "" ]]; then
-		echo -e "${GREEN}Checking difference with output file${WHITE}"
-		echo "$OUTPUT" | diff - "$OUT_FILE"
-	fi
+  if [[ "$SAVEFILE" != "" ]]; then
+    echo "$OUTPUT" > "$SAVEFILE"
+  fi
 
-	echo -e "${GREEN}Done"
+  if [[ "$OUT_FILE" != "" ]]; then
+    echo -e "${GREEN}Checking difference with output file${WHITE}"
+    echo "$OUTPUT" | "$DIFF_COMMAND" - "$OUT_FILE"
+  fi
+
+  echo -e "${GREEN}Done"
 }
 
 RunPython()
 {
-	if [[ "$SIMPLE" == true ]]; then
-		python "$FILE"
-		exit
-	fi
+  if [[ "$SIMPLE" == true ]]; then
+    python "$FILE"
+    exit
+  fi
 
-	START_TIME=0
-	if [[ "$USEFILE" == true ]]; then
-		START_TIME=$(($(date +%s%N)/1000000))
-		python "$FILE" < "$IN_FILE"
-	else
-		START_TIME=$(($(date +%s%N)/1000000))
-		python "$FILE"
-	fi
-	END_TIME=$(($(date +%s%N)/1000000))
+  START_TIME=0
+  if [[ "$USEFILE" == true ]]; then
+    START_TIME=$(($(date +%s%N)/1000000))
+    python "$FILE" < "$IN_FILE"
+  else
+    START_TIME=$(($(date +%s%N)/1000000))
+    python "$FILE"
+  fi
+  END_TIME=$(($(date +%s%N)/1000000))
 
-	ELAPSED_TIME=$((END_TIME - START_TIME))
+  ELAPSED_TIME=$((END_TIME - START_TIME))
 
-	echo -e "${GREEN}Done${NC}"
+  echo -e "${GREEN}Done${NC}"
 }
 
 CompileCpp()
 {
-	echo -e "${GREEN}Compiling...${WHITE}"
-	g++ -std=c++11 "$FILE" -Wall
+  echo -e "${GREEN}Compiling...${WHITE}"
+  g++ -std=c++11 "$FILE" -Wall
 }
 
 RunCpp()
 {
-	echo -e "${GREEN}Running...${WHITE}"
+  echo -e "${GREEN}Running...${WHITE}"
 
-	if [[ "$SIMPLE" == true ]]; then
-		./a.out
-		exit
-	fi
+  if [[ "$SIMPLE" == true ]]; then
+    ./a.out
+    exit
+  fi
 
-	START_TIME=0
-	if [[ "$USEFILE" == true ]]; then
-		START_TIME=$(($(date +%s%N)/1000000))
-		./a.out < "$IN_FILE"
-	else
-		START_TIME=$(($(date +%s%N)/1000000))
-		./a.out
-	fi
-	END_TIME=$(($(date +%s%N)/1000000))
+  START_TIME=0
+  if [[ "$USEFILE" == true ]]; then
+    START_TIME=$(($(date +%s%N)/1000000))
+    ./a.out < "$IN_FILE"
+  else
+    START_TIME=$(($(date +%s%N)/1000000))
+    ./a.out
+  fi
+  END_TIME=$(($(date +%s%N)/1000000))
 
-	ELAPSED_TIME=$((END_TIME - START_TIME))
+  ELAPSED_TIME=$((END_TIME - START_TIME))
 
-	echo -e "${GREEN}Done"
+  echo -e "${GREEN}Done"
 }
 
 if [[ "$EXTENSION" == "java" ]]; then
-	CompileJava
+  CompileJava
 elif [[ "$EXTENSION" == "cpp" ]]; then
-	CompileCpp
+  CompileCpp
 elif [[ "$EXTENSION" == "py" ]]; then
-	echo -e "${GREEN}Python cannot be compiled, proceeding to run...${NC}"
+  echo -e "${GREEN}Python cannot be compiled, proceeding to run...${NC}"
 else
-	echo -e "${NC}Filetype '$EXTENSION' is not supported"
-	exit 1
+  echo -e "${NC}Filetype '$EXTENSION' is not supported"
+  exit 1
 fi
 
 SUM=0
@@ -169,17 +191,17 @@ TIMES_RAN="$RUNS"
 
 while [[ "$RUNS" -gt 0 ]]
 do
-	if [[ "$EXTENSION" == "java" ]]; then
-		RunJava
-	elif [[ "$EXTENSION" == "py" ]]; then
-		RunPython
-	elif [[ "$EXTENSION" == "cpp" ]]; then
-		RunCpp
-	fi
+  if [[ "$EXTENSION" == "java" ]]; then
+    RunJava
+  elif [[ "$EXTENSION" == "py" ]]; then
+    RunPython
+  elif [[ "$EXTENSION" == "cpp" ]]; then
+    RunCpp
+  fi
 
-	SUM=$((SUM + ELAPSED_TIME))
-	TOTAL=$((TOTAL + 1))
-	RUNS=$((RUNS - 1))
+  SUM=$((SUM + ELAPSED_TIME))
+  TOTAL=$((TOTAL + 1))
+  RUNS=$((RUNS - 1))
 done
 
 AVERAGE_TIME=$((SUM / TOTAL))
@@ -187,13 +209,13 @@ AVERAGE_TIME=$((SUM / TOTAL))
 echo -e "${GREEN}Average runtime after ${TIMES_RAN} runs: ${AVERAGE_TIME} ms"
 
 if [[ "$EXTENSION" == "java" ]]; then
-	echo -e "${GREEN}Removing class file..."
-	rm *.class
+  echo -e "${GREEN}Removing class file..."
+  rm *.class
 elif [[ "$EXTENSION" == "cpp" ]]; then
-	echo -e "${GREEN}Removing executable file..."
-	rm a.out
+  echo -e "${GREEN}Removing executable file..."
+  rm a.out
 else
-	echo -e "${GREEN}No executable to remove for Python, exiting..."
+  echo -e "${GREEN}No executable to remove for Python, exiting..."
 fi
 
 echo -e "${GREEN}Done"
