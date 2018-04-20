@@ -7,13 +7,15 @@ Fetches rootkit
 ### run
 Compiles and executes single code files
 ```
-Usage: run -f [FILENAME] [options]
-	-i	Specify the input file to use
-	-o	Specify an expected output file to diff stdout with
-	-u	Use stdin instead of 'in.txt' as input
-	-s	Do a simple compile and execute
-	-r	Skip compilation and just run the class
-	-b	Specify the amount of times to run the program, and output the average runtime
+Usage: run {FILENAME} [options]
+    	-i	Specify the input file to use
+    	-o	Specify an expected output file to diff stdout with
+    	-u	Use stdin instead of '$IN_FILE' as input
+    	-s	Do a simple compile and execute
+    	-r	Skip compilation and just run the class
+    	-b	Specify the amount of times to run the program, and output the average runtime
+    	-e	Specify a file to pipe output to
+    	-c	Use color for diff (must have colordiff installed)
 	-h	Show usage
 ```
 
