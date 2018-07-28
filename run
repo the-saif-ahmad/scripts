@@ -131,13 +131,13 @@ RunPython()
 
   START_TIME=0
   if [[ "$USEFILE" == true ]]; then
-    START_TIME=$(($(date +%s%N)/1000000))
+    START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
     python "$FILE" < "$IN_FILE"
   else
-    START_TIME=$(($(date +%s%N)/1000000))
+    START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
     python "$FILE"
   fi
-  END_TIME=$(($(date +%s%N)/1000000))
+  END_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
 
   ELAPSED_TIME=$((END_TIME - START_TIME))
 
@@ -161,13 +161,13 @@ RunCpp()
 
   START_TIME=0
   if [[ "$USEFILE" == true ]]; then
-    START_TIME=$(($(date +%s%N)/1000000))
+    START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
     ./a.out < "$IN_FILE"
   else
-    START_TIME=$(($(date +%s%N)/1000000))
+    START_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
     ./a.out
   fi
-  END_TIME=$(($(date +%s%N)/1000000))
+  END_TIME=$(($($DATE_COMMAND +%s%N)/1000000))
 
   ELAPSED_TIME=$((END_TIME - START_TIME))
 
